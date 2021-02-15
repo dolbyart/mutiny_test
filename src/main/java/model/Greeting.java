@@ -16,9 +16,15 @@ public class Greeting extends PanacheEntity {
     public static Uni<Greeting> findRandom() {
         Random random= new Random();
 
-        return Greeting.count()
+       /* return Greeting.count()
                 .onItem().transform(x-> random.nextInt(x.intValue()))
                 .onItem().transformToUni(index ->{
+                    return Greeting.findAll().page(index,1).firstResult();
+                });*/
+
+        return Greeting.count()
+                .map(x-> random.nextInt(x.intValue()))
+                .flatMap(index ->{
                     return Greeting.findAll().page(index,1).firstResult();
                 });
     }
