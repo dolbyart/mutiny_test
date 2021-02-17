@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Multi;
 import java.time.Duration;
 import java.util.Random;
 
+
 public class Source {
     private static Random random = new Random();
 
@@ -12,7 +13,7 @@ public class Source {
         int counter = 10;
 
         return Multi.createFrom().ticks().every(Duration.ofMillis(100))
-                .onItem().transform(x->random.nextDouble())
-                .transform().byTakingFirstItems(counter);
+                //.map(x->random.nextDouble());
+                .onItem().transform(x -> random.nextDouble()).select().first(counter);
     }
 }
