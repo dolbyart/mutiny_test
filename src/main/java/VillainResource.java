@@ -15,15 +15,26 @@ public class VillainResource {
 
     @GET
     @Path("/getrandom")
-    public Uni<Villain> getRandomVillain(){
+    public Uni<Villain> getRandomVillain() {
         return Villain.findRandom();
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Multi<Villain> getAllVillains() {
+        return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
+                .onItem().transformToMulti(x-> Multi.createFrom().items(Villain.villaiList.stream())).merge().select().first(10);
+
+        /*.transformToMulti(x-> Villain.findRandom().onItem().transformToMulti(item->Multi.createFrom().items(item,item))).merge().select().first(50);*/
+
+    }
+
+    @GET
+    @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @RestSseElementType(MediaType.APPLICATION_JSON)
-    public Multi<Villain> getVillains(){
+    public Multi<Villain> getVillainsStream() {
         return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
-                .onItem().transformToUni(x->getRandomVillain()).merge();
+                .onItem().transformToUni(x -> Villain.findRandom()).merge();
     }
 }

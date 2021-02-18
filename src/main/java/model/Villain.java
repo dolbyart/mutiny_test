@@ -1,11 +1,15 @@
 package model;
 
 import io.quarkus.hibernate.reactive.panache.PanacheEntity;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.converters.MultiConverter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class Villain /*extends PanacheEntity*/ {
 
@@ -28,6 +32,9 @@ public class Villain /*extends PanacheEntity*/ {
 
     }};
 
+    public static Multi<Villain> getAll() {
+        return Multi.createFrom().items(villaiList.stream());
+    }
 
     public static Uni<Villain> findRandom() {
         Random random = new Random();
