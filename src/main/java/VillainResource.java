@@ -22,10 +22,11 @@ public class VillainResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Multi<Villain> getAllVillains() {
-        return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
-                .onItem().transformToMulti(x-> Multi.createFrom().items(Villain.villaiList.stream())).merge().select().first(10);
+        /*return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
+                .onItem().transformToMulti(x-> Multi.createFrom().items(Villain.villaiList.stream())).merge().select().first(10);*/
 
-        /*.transformToMulti(x-> Villain.findRandom().onItem().transformToMulti(item->Multi.createFrom().items(item,item))).merge().select().first(50);*/
+        return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
+                .onItem().transformToMulti(x -> Multi.createFrom().items(Villain.findRandom().await().indefinitely(), Villain.findRandom().await().indefinitely())).merge().select().first(50);
 
     }
 
