@@ -17,6 +17,14 @@ public class Villain /*extends PanacheEntity*/ {
     public int level;
     public String image;
 
+    public static final Villain FALLBACK;
+
+    static {
+        FALLBACK = new Villain();
+        FALLBACK.name = "Mini T-X (fallback)";
+        FALLBACK.image = "Fallback image";
+        FALLBACK.level = 1;
+    }
 
     public static List<Villain> villaiList = new ArrayList<>() {{
         add(new Villain() {{
