@@ -10,6 +10,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.time.Duration;
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
@@ -20,12 +21,44 @@ public class PlayGroundResource {
     PlaygroundRestService playgroundRestService;
 
     @GET
+    @Path("/teen")
+    public Uni<String> teen(){
+        System.out.println("=============");
+
+        /*return playgroundRestService.hello()
+                .onItem().invoke(item -> System.out.println("Got response for teen: " + item))
+                .ifNoItem().after(Duration.ofMillis(500)).recoverWithItem("timout")
+                .onFailure().recoverWithItem("failure");*/
+
+        return playgroundRestService.hello()
+                .onItem().invoke(item -> System.out.println("Got response for teen: " + item))
+                .ifNoItem().after(Duration.ofMillis(500))
+                .fail()
+                .onFailure().retry().indefinitely();
+    }
+
+    @GET
     @Path("allhi")
     public Multi<String> allPlayground() {
         System.out.println("=============");
 
         Multi<String> items = Multi.createFrom().items("hello", "privet", "hola");
-        return items.onItem().transformToUniAndConcatenate(x -> playgroundRestService.mirror(x));
+
+        //The concatenate in order, merge unordered
+        /*return items.onItem().transformToUni(x->playgroundRestService.mirror(x)).concatenate();*/
+        /* return items.onItem().transformToUniAndConcatenate(x -> playgroundRestService.mirror(x));*/
+        /*return items.onItem().transformToUni(x->playgroundRestService.mirror(x)).merge(1);*/
+        //all three above do the same, because merge(1) will use only one rest pool at the time
+
+        // when use merge() mean use all rest pool
+        /*return items.onItem().transformToUni(x->playgroundRestService.mirror(x)).merge();*/
+
+        //
+        return items.onItem()
+                .transformToUni(x->playgroundRestService.mirror(x))
+                // without collectFailures calls will stop on first failure
+                .collectFailures()
+                .merge(1);
     }
 
     @GET

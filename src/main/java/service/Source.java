@@ -14,6 +14,6 @@ public class Source {
 
         return Multi.createFrom().ticks().every(Duration.ofMillis(100))
                 //.map(x->random.nextDouble());
-                .onItem().transform(x -> random.nextDouble()).select().first(counter);
+                .onItem().transform(x -> random.nextDouble()).transform().byTakingFirstItems(counter)/*.select().first(counter)*/;
     }
 }
