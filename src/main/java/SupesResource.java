@@ -3,7 +3,7 @@ import io.smallrye.mutiny.Uni;
 import model.Fight;
 import model.Hero;
 import model.Villain;
-import org.jboss.resteasy.reactive.RestSseElementType;
+import org.jboss.resteasy.annotations.SseElementType;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-@Path("")
+@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 public class SupesResource {
 
@@ -34,7 +34,7 @@ public class SupesResource {
     @GET
     @Path("/heroes")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @RestSseElementType(MediaType.APPLICATION_JSON)
+    @SseElementType(MediaType.APPLICATION_JSON)
     public Multi<Hero> stream() {
         return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
                 .onItem().transformToUni(x -> hero()).merge();
@@ -48,10 +48,12 @@ public class SupesResource {
 
         //Blocking way
         return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
-                .onItem().transformToMulti(x -> Multi.createFrom().items(Villain.findRandom().await().indefinitely(), Villain.findRandom().await().indefinitely())).merge().select().first(10);
+                .onItem().transformToMulti(x -> Multi.createFrom().items(Villain.findRandom().await().indefinitely(), Villain.findRandom().await().indefinitely())).merge().transform().byTakingFirstItems(10);/*.select().first(10);*/
     }
 
     @GET
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @SseElementType(MediaType.APPLICATION_JSON)
     @Path("/villain/randomtwo/stream")
     public Multi<List<Villain>> getRandomViilansStream() {
 
@@ -63,7 +65,7 @@ public class SupesResource {
                             villainList.add(villain);
                             villainList.add(villain2);
                             return villainList;
-                        }))).merge().select().first(10);
+                        }))).merge().transform().byTakingFirstItems(10);/*.select().first(10);*/
 
         /*return Uni.combine().all().unis(villainUni,villainUni2)
                 .combinedWith((villain, villain2) -> {
@@ -117,7 +119,7 @@ public class SupesResource {
     @GET
     @Path("/fight/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @RestSseElementType(MediaType.APPLICATION_JSON)
+    @SseElementType(MediaType.APPLICATION_JSON)
     public Multi<Fight> fightStream() {
 
         Multi<Long> ticks = Multi.createFrom().ticks()
@@ -129,7 +131,7 @@ public class SupesResource {
     @GET
     @Path("/villain/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @RestSseElementType(MediaType.APPLICATION_JSON)
+    @SseElementType(MediaType.APPLICATION_JSON)
     public Multi<Villain> getVillainsStream() {
         return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
                 .onItem().transformToUni(x -> Villain.findRandom()).merge();
