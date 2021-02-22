@@ -31,10 +31,19 @@ public class PlayGroundResource {
                 .onFailure().recoverWithItem("failure");*/
 
         return playgroundRestService.hello()
+                .onSubscribe().invoke(x-> System.out.println("subscribing"))
                 .onItem().invoke(item -> System.out.println("Got response for teen: " + item))
                 .ifNoItem().after(Duration.ofMillis(500))
                 .fail()
                 .onFailure().retry().indefinitely();
+
+
+        /*return Uni.createFrom().deferred(() -> playgroundRestService.hello())
+                .onSubscribe().invoke(item -> System.out.println("Subscribing"))
+                 .onItem().invoke(item -> System.out.println("Got response for teen: " + item))
+                .ifNoItem().after(Duration.ofMillis(500))
+                .fail()
+                .onFailure().retry().indefinitely();*/
     }
 
     @GET
