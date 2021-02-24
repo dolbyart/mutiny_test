@@ -48,7 +48,7 @@ public class SupesResource {
 
         //Blocking way
         return Multi.createFrom().ticks().every(Duration.ofSeconds(1))
-                .onItem().transformToMulti(x -> Multi.createFrom().items(Villain.findRandom().await().indefinitely(), Villain.findRandom().await().indefinitely())).merge().transform().byTakingFirstItems(10);/*.select().first(10);*/
+                .onItem().transformToMulti(x -> Multi.createFrom().items(Villain.findRandom().await().indefinitely(), Villain.findRandom().await().indefinitely())).merge().select().first(10);
     }
 
     @GET
@@ -65,7 +65,7 @@ public class SupesResource {
                             villainList.add(villain);
                             villainList.add(villain2);
                             return villainList;
-                        }))).merge().transform().byTakingFirstItems(10);/*.select().first(10);*/
+                        }))).merge().select().first(10);
 
         /*return Uni.combine().all().unis(villainUni,villainUni2)
                 .combinedWith((villain, villain2) -> {
