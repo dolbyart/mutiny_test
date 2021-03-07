@@ -1,16 +1,19 @@
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import model.Beer;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import service.PlaygroundRestService;
+import service.PunkApi;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
@@ -22,7 +25,7 @@ public class PlayGroundResource {
 
     @GET
     @Path("/teen")
-    public Uni<String> teen(){
+    public Uni<String> teen() {
         System.out.println("=============");
 
         /*return playgroundRestService.hello()
@@ -31,7 +34,7 @@ public class PlayGroundResource {
                 .onFailure().recoverWithItem("failure");*/
 
         return playgroundRestService.hello()
-                .onSubscribe().invoke(x-> System.out.println("subscribing"))
+                .onSubscribe().invoke(x -> System.out.println("subscribing"))
                 .onItem().invoke(item -> System.out.println("Got response for teen: " + item))
                 .ifNoItem().after(Duration.ofMillis(500))
                 .fail()
@@ -64,7 +67,7 @@ public class PlayGroundResource {
 
         //
         return items.onItem()
-                .transformToUni(x->playgroundRestService.mirror(x))
+                .transformToUni(x -> playgroundRestService.mirror(x))
                 // without collectFailures calls will stop on first failure
                 .collectFailures()
                 .merge(1);
@@ -98,5 +101,45 @@ public class PlayGroundResource {
                 .combinedWith((item1,item2) ->{
                     return item1+item2;
                 });*/
+    }
+
+    @Inject
+    @RestClient
+    PunkApi punkApi;
+
+    @GET
+    @Path("/punk")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<List<Beer>> getBeers() {
+        return punkApi.get(1);
+    }
+
+    @GET
+    @Path("/punkmulti")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Multi<Beer> getBeersMulti() {
+
+        Multi<Beer> multi = Multi.createBy().repeating()
+                .uni(AtomicInteger::new, page -> {
+                    System.out.println("Page: " + page);
+                    return punkApi.get(page.incrementAndGet());
+                })
+                .until(List::isEmpty)
+                .onItem().disjoint();
+
+        //return multi;
+
+        // Here we can get non reactive list
+        List<Beer> beers = multi
+                .filter(beer -> beer.abv < 5)
+                .select().first(10)
+                .subscribe().asStream().collect(Collectors.toList());
+
+        return multi
+                .filter(beer -> beer.abv < 5)
+                .select().first(10);
+
+       /* return punkApi.get(1)
+                .onItem().transformToMulti(list -> Multi.createFrom().iterable(list));*/
     }
 }
